@@ -210,7 +210,7 @@ MonitorOne follows several important engineering principles.
 ## Clone
 
 ```bash
-git clone https://github.com/28-Sounak/MonitorOne.git
+git clone https://github.com/28-Sounak/MonitorOne
 ```
 
 ```bash
