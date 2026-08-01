@@ -17,3 +17,7 @@ ${MONITOR_SOURCES}
 target_include_directories(MonitorOne PRIVATE
 src/Monitor
 )
+
+target_link_libraries(MonitorOne PRIVATE
+    dxgi
+)
