@@ -3,7 +3,7 @@
 #include <windows.h>
 
 #include <stdexcept>
-#include <comdef.h>
+//#include <comdef.h>
 
 bool comInitialized = false;
 
@@ -139,7 +139,29 @@ void GpuMonitor::initializeDXGI()
     }
 
     //Cache information
-    gpuName = _bstr_t(desc.Description); //later for UTF-8 support, replace it with an explicit UTF-16 to UTF-8 conversion.
+    //gpuName = _bstr_t(desc.Description); //later for UTF-8 support, replace it with an explicit UTF-16 to UTF-8 conversion.
+    int length = WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        desc.Description,
+        -1,
+        nullptr,
+        0,
+        nullptr,
+        nullptr
+    );
+    std::string name(length - 1, '\0');
+    WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        desc.Description,
+        -1,
+        name.data(),
+        length,
+        nullptr,
+        nullptr
+    );
+    gpuName = name;
     vendorId = desc.VendorId;
     deviceId = desc.DeviceId;
 
