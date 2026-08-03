@@ -4,6 +4,59 @@
 
 #include<iostream>
 
+#include <winreg.h>
+
+CpuMonitor::CpuMonitor()
+{
+    initializeCpuInfo();
+}
+
+void CpuMonitor::initializeCpuInfo()
+{
+    HKEY hKey;
+
+    if(RegOpenKeyExA(
+        HKEY_LOCAL_MACHINE,
+        "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+        0,
+        KEY_READ,
+        &hKey) == ERROR_SUCCESS)
+    {
+        char buffer[256];
+        DWORD bufferSize = sizeof(buffer);
+
+        if(RegQueryValueExA(
+            hKey,
+            "ProcessorNameString",
+            nullptr,
+            nullptr,
+            reinterpret_cast<LPBYTE>(buffer),
+            &bufferSize) == ERROR_SUCCESS)
+        {
+            cpuName = buffer;
+        }
+        RegCloseKey(hKey);
+    }
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+
+    numberOfLogicalProcessors = info.dwNumberOfProcessors;
+    
+    vendorName = "Unknown";
+
+}
+
+float CpuMonitor::getBaseClock()
+{
+    return baseClock;
+}
+
+float CpuMonitor::getCurrentClock()
+{
+    return currentClock;
+}
+
+
 //Convert FILETIME to unsigned long long
 static unsigned long long fileTimeToULL(FILETIME ft)
 {
@@ -13,6 +66,26 @@ static unsigned long long fileTimeToULL(FILETIME ft)
     value.HighPart = ft.dwHighDateTime;
     
     return value.QuadPart;
+}
+
+std::string CpuMonitor::getCpuName()
+{
+    return cpuName;
+}
+
+std::string CpuMonitor::getVendorName()
+{
+    return vendorName;
+}
+
+uint32_t CpuMonitor::getNumberOfCores()
+{
+    return numberOfCores;
+}
+
+uint32_t CpuMonitor::getNumberOfLogicalProcessors()
+{
+    return numberOfLogicalProcessors;
 }
 
 float CpuMonitor::getCpuUsage()

@@ -19,6 +19,13 @@ int main()
 
     std::cout << "Shared System Memory: " << gpu.getSharedMemoryTotal() / (1024 * 1024) << " MiB\n\n";
 
+    std::cout << "CPU Name: " << cpu.getCpuName() << '\n';
+    std::cout << "Vendor: " << cpu.getVendorName() << '\n';
+    std::cout << "Logical Processors: "
+          << cpu.getNumberOfLogicalProcessors() << '\n';
+    std::cout << "Base Clock: " << cpu.getBaseClock() << " MHz\n";
+    std::cout << "Current Clock: " << cpu.getCurrentClock() << " MHz\n";
+
     while(true)
     {
         std::cout
