@@ -4,12 +4,15 @@
 
 #include "CpuMonitor.h"
 #include "GpuMonitor.h"
+#include "MemoryMonitor.h"
 
 int main()
 {
     CpuMonitor cpu;
     GpuMonitor gpu;
+    MemoryMonitor memory;
 
+    //Display GPU Information
     std::cout << "GPU Name: " << gpu.getGpuName() << "\n";
     std::cout << "Vendor: " << gpu.getVendorName() << "\n";
     std::cout << "Vendor ID: " << gpu.getVendorId() << "\n";
@@ -19,6 +22,7 @@ int main()
 
     std::cout << "Shared System Memory: " << gpu.getSharedMemoryTotal() / (1024 * 1024) << " MiB\n\n";
 
+    //Display CPU Information
     std::cout << "CPU Name: " << cpu.getCpuName() << '\n';
     std::cout << "Vendor: " << cpu.getVendorName() << '\n';
     std::cout << "Logical Processors: "
@@ -26,6 +30,16 @@ int main()
     std::cout << "Base Clock: " << cpu.getBaseClock() << " MHz\n";
     std::cout << "Current Clock: " << cpu.getCurrentClock() << " MHz\n";
 
+    //Display Memory Information
+    std::cout << "\nTotal Memory: " << memory.getTotalMemory() / (1024 * 1024) << "MB\n";
+
+    std::cout << "Available Memory: " << memory.getAvailableMemory() / (1024 * 1024) << "MB\n";
+
+    std::cout << "Used Memory: " << memory.getUsedMemory() / (1024 * 1024) << "MB\n";
+
+    std::cout << "Memory Usage: " << memory.getMemoryUsage() << "%\n";
+
+    //Continuous Monitoring
     while(true)
     {
         std::cout
@@ -47,6 +61,8 @@ int main()
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
+    
 
     return 0;
 }
