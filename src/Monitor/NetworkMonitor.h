@@ -1,99 +1,186 @@
 #pragma once
 
-#include <chrono.h>
+// ------------------------------------------------------------
+// Windows networking headers
+// IMPORTANT: winsock2.h must come before windows.h
+// ------------------------------------------------------------
 
-#include<winsock2.h> //Necessary for basic network hostname resolution, IP definitions, and socket operations.
+#include <winsock2.h>
+#include <windows.h>
 
-#include<windows.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#include <wlanapi.h>
 
-#include<iphlpapi.h> //For getting IP addresses, network adapter configurations, routing tables, and statistics.
+// ------------------------------------------------------------
+// C++ headers
+// ------------------------------------------------------------
 
-#include<wlanapi.h> //For specific Wi-Fi network details like signal strength or available wireless SSIDs. 
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <chrono>
 
-#include<cstdint>
 
-#include<string>
-
-#include<vector>
+// ============================================================
+// NetworkAdapter
+// ============================================================
 
 struct NetworkAdapter
 {
-    //Basic Information
+    // --------------------------------------------------------
+    // Basic Information
+    // --------------------------------------------------------
+
     std::string adapterName;
     std::string description;
     std::string interfaceType;
     std::string status;
 
-    //Hardware Information
-    std::string MACAddress;
 
-    //IP Configuration
-    std::string IPv4Address;
-    std::string IPv6Address;
-    std::string SubnetMask;
-    std::string DefaultGateway;
+    // --------------------------------------------------------
+    // Hardware Information
+    // --------------------------------------------------------
 
-    //DNS / DHCP
-    std::string DNSServers;
-    std::string DHCP;
-    std::string DHCPServer;
+    std::string macAddress;
 
-    //Interface Information
-    uint32_t InterfaceIndex = 0;
-    uint32_t LinkSpeed = 0;
-    uint32_t MTU = 0;
 
-    //Runtime Statistice
+    // --------------------------------------------------------
+    // IP Configuration
+    // --------------------------------------------------------
+
+    std::string ipv4Address;
+    std::string ipv6Address;
+    std::string subnetMask;
+    std::string defaultGateway;
+
+
+    // --------------------------------------------------------
+    // DNS / DHCP
+    // --------------------------------------------------------
+
+    std::string dnsServers;
+    std::string dhcp;
+    std::string dhcpServer;
+
+
+    // --------------------------------------------------------
+    // Interface Information
+    // --------------------------------------------------------
+
+    uint32_t interfaceIndex = 0;
+
+    // Link speed is reported by Windows in bits per second
+    uint64_t linkSpeed = 0;
+
+    uint32_t mtu = 0;
+
+
+    // --------------------------------------------------------
+    // Runtime Statistics
+    // --------------------------------------------------------
+
     uint64_t downloadSpeed = 0;
     uint64_t uploadSpeed = 0;
+
     uint64_t bytesReceived = 0;
     uint64_t bytesSent = 0;
 
-    //Wi-Fi Specific Information
-    bool isWifi = false;
-    std::string wifiSSID;
-    std::string WifiBSSID;
-    int wifiSignalStrength = 0;
 
+    // --------------------------------------------------------
+    // Wi-Fi Specific Information
+    // --------------------------------------------------------
+
+    bool isWifi = false;
+
+    std::string wifiSSID;
+    std::string wifiBSSID;
+
+    // Wi-Fi signal quality: 0 - 100
+    int wifiSignalStrength = 0;
 };
+
+
+// ============================================================
+// NetworkMonitor
+// ============================================================
 
 class NetworkMonitor
 {
 private:
 
-    // Stores information about all detected network adapters
+    // --------------------------------------------------------
+    // Adapter information
+    // --------------------------------------------------------
+
     std::vector<NetworkAdapter> adapters;
 
-    // Initializes network adapter information
+
+    // --------------------------------------------------------
+    // Runtime statistics timing
+    // --------------------------------------------------------
+
+    std::chrono::steady_clock::time_point lastStatsUpdate;
+
+    bool firstStatsSample = true;
+
+
+    // --------------------------------------------------------
+    // Initialization
+    // --------------------------------------------------------
+
     void initializeAdapters();
 
-    // Updates runtime network statistics
+
+    // --------------------------------------------------------
+    // Network statistics
+    // --------------------------------------------------------
+
     void updateNetworkStats();
 
-    // Converts interface type to readable text
-    std::string getInterfaceTypeName(uint32_t type);
 
-    // Converts adapter status to readable text
-    std::string getAdapterStatusName(uint32_t status);
+    // --------------------------------------------------------
+    // Helper functions
+    // --------------------------------------------------------
 
-    // Converts a Windows socket address to a readable IP address
-    std::string getIPAddress(const SOCKADDR* address);
+    static std::string getInterfaceTypeName(
+        uint32_t type
+    );
 
-    // Determines whether an adapter is Wi-Fi
-    bool isWiFiAdapter(const NetworkAdapter& adapter);
+    static std::string getAdapterStatusName(
+        uint32_t status
+    );
+
+    static std::string getIPAddress(
+        const SOCKADDR* address
+    );
+
+    static bool isWiFiAdapter(
+        const NetworkAdapter& adapter
+    );
 
 
 public:
 
+    // --------------------------------------------------------
     // Constructor
+    // --------------------------------------------------------
+
     NetworkMonitor();
 
-    // Returns all detected network adapters
+
+    // --------------------------------------------------------
+    // Adapter information
+    // --------------------------------------------------------
+
     const std::vector<NetworkAdapter>& getAdapters();
 
-    // Returns total download speed
+
+    // --------------------------------------------------------
+    // Total network speeds
+    // --------------------------------------------------------
+
     uint64_t getDownloadSpeed();
 
-    // Returns total upload speed
     uint64_t getUploadSpeed();
 };
