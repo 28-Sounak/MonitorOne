@@ -22,6 +22,11 @@ void MemoryMonitor::updateMemoryInfo()
     }
 }
 
+void MemoryMonitor::initializeMemoryModules()
+{
+    
+}
+
 uint64_t MemoryMonitor::getTotalMemory()
 {
     updateMemoryInfo();
