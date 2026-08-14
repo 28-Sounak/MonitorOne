@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono.h>
+
 #include<winsock2.h> //Necessary for basic network hostname resolution, IP definitions, and socket operations.
 
 #include<windows.h>
