@@ -59,4 +59,6 @@ target_link_libraries(MonitorOne PRIVATE
 
     # COM / Windows components
     ole32
+
+    pdh
 )

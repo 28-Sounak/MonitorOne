@@ -22,7 +22,6 @@ static std::string wideToString(const wchar_t* wideString)
         return "";
     }
 
-
     int sizeNeeded =
         WideCharToMultiByte(
             CP_UTF8,
@@ -35,19 +34,15 @@ static std::string wideToString(const wchar_t* wideString)
             nullptr
         );
 
-
     if (sizeNeeded <= 0)
     {
         return "";
     }
 
-
-    // Allocate space including terminating null character
     std::string result(
         sizeNeeded,
         '\0'
     );
-
 
     WideCharToMultiByte(
         CP_UTF8,
@@ -60,14 +55,11 @@ static std::string wideToString(const wchar_t* wideString)
         nullptr
     );
 
-
-    // Remove terminating null character
     if (!result.empty() &&
         result.back() == '\0')
     {
         result.pop_back();
     }
-
 
     return result;
 }
@@ -81,12 +73,10 @@ NetworkMonitor::NetworkMonitor()
 {
     initializeAdapters();
 
-
     lastStatsUpdate =
         std::chrono::steady_clock::now();
 
-
-    // Take initial statistics sample
+    // Initial sample
     updateNetworkStats();
 }
 
@@ -99,24 +89,20 @@ void NetworkMonitor::initializeAdapters()
 {
     adapters.clear();
 
-
     // --------------------------------------------------------
-    // Allocate buffer for adapter information
+    // Allocate buffer
     // --------------------------------------------------------
 
     ULONG bufferSize = 15000;
-
 
     std::vector<unsigned char> buffer(
         bufferSize
     );
 
-
     PIP_ADAPTER_ADDRESSES adapterAddresses =
         reinterpret_cast<PIP_ADAPTER_ADDRESSES>(
             buffer.data()
         );
-
 
     ULONG flags =
         GAA_FLAG_INCLUDE_PREFIX |
@@ -138,19 +124,17 @@ void NetworkMonitor::initializeAdapters()
 
 
     // --------------------------------------------------------
-    // Buffer was too small
+    // Resize buffer if necessary
     // --------------------------------------------------------
 
     if (result == ERROR_BUFFER_OVERFLOW)
     {
         buffer.resize(bufferSize);
 
-
         adapterAddresses =
             reinterpret_cast<PIP_ADAPTER_ADDRESSES>(
                 buffer.data()
             );
-
 
         result =
             GetAdaptersAddresses(
@@ -179,7 +163,7 @@ void NetworkMonitor::initializeAdapters()
 
 
     // ========================================================
-    // Iterate through every network adapter
+    // Process adapters
     // ========================================================
 
     for (
@@ -195,7 +179,7 @@ void NetworkMonitor::initializeAdapters()
 
 
         // ----------------------------------------------------
-        // Basic Information
+        // Basic information
         // ----------------------------------------------------
 
         if (adapter->AdapterName != nullptr)
@@ -204,18 +188,15 @@ void NetworkMonitor::initializeAdapters()
                 adapter->AdapterName;
         }
 
-
         networkAdapter.description =
             wideToString(
                 adapter->Description
             );
 
-
         networkAdapter.interfaceType =
             getInterfaceTypeName(
                 adapter->IfType
             );
-
 
         networkAdapter.status =
             getAdapterStatusName(
@@ -224,35 +205,35 @@ void NetworkMonitor::initializeAdapters()
 
 
         // ----------------------------------------------------
-        // Interface Information
+        // Interface information
         // ----------------------------------------------------
 
         networkAdapter.interfaceIndex =
             adapter->IfIndex;
 
-
         networkAdapter.mtu =
             adapter->Mtu;
 
+
+        // ----------------------------------------------------
+        // Link speed
+        // ----------------------------------------------------
 
         networkAdapter.linkSpeed =
             adapter->TransmitLinkSpeed;
 
 
         // ----------------------------------------------------
-        // MAC Address
+        // MAC address
         // ----------------------------------------------------
 
         if (adapter->PhysicalAddressLength > 0)
         {
             std::ostringstream mac;
 
-
             for (
                 ULONG i = 0;
-
                 i < adapter->PhysicalAddressLength;
-
                 ++i
             )
             {
@@ -260,7 +241,6 @@ void NetworkMonitor::initializeAdapters()
                 {
                     mac << ":";
                 }
-
 
                 mac
                     << std::uppercase
@@ -272,14 +252,13 @@ void NetworkMonitor::initializeAdapters()
                     );
             }
 
-
             networkAdapter.macAddress =
                 mac.str();
         }
 
 
         // ====================================================
-        // IP Addresses
+        // IP addresses
         // ====================================================
 
         for (
@@ -299,10 +278,8 @@ void NetworkMonitor::initializeAdapters()
                 continue;
             }
 
-
             ADDRESS_FAMILY family =
                 unicast->Address.lpSockaddr->sa_family;
-
 
             std::string address =
                 getIPAddress(
@@ -326,41 +303,31 @@ void NetworkMonitor::initializeAdapters()
 
 
                 // --------------------------------------------
-                // IPv4 subnet mask
+                // Subnet mask
                 // --------------------------------------------
 
                 ULONG prefixLength =
                     unicast->OnLinkPrefixLength;
 
-
                 if (prefixLength <= 32)
                 {
-                    ULONG mask;
+                    ULONG mask = 0;
 
-
-                    if (prefixLength == 0)
-                    {
-                        mask = 0;
-                    }
-                    else
+                    if (prefixLength != 0)
                     {
                         mask =
                             0xFFFFFFFFu <<
                             (32 - prefixLength);
                     }
 
-
-                    IN_ADDR subnetMask;
-
+                    IN_ADDR subnetMask{};
 
                     subnetMask.S_un.S_addr =
                         htonl(mask);
 
-
                     char maskBuffer[
                         INET_ADDRSTRLEN
                     ];
-
 
                     if (
                         inet_ntop(
@@ -396,25 +363,42 @@ void NetworkMonitor::initializeAdapters()
 
 
         // ====================================================
-        // Default Gateway
+        // Default gateway
         // ====================================================
 
-        if (
-            adapter->FirstGatewayAddress != nullptr &&
-            adapter->FirstGatewayAddress->Address.lpSockaddr != nullptr
+        for (
+            PIP_ADAPTER_GATEWAY_ADDRESS_LH gateway =
+                adapter->FirstGatewayAddress;
+
+            gateway != nullptr;
+
+            gateway = gateway->Next
         )
         {
-            networkAdapter.defaultGateway =
+            if (
+                gateway->Address.lpSockaddr == nullptr
+            )
+            {
+                continue;
+            }
+
+            std::string gatewayAddress =
                 getIPAddress(
-                    adapter
-                        ->FirstGatewayAddress
-                        ->Address.lpSockaddr
+                    gateway->Address.lpSockaddr
                 );
+
+            if (!gatewayAddress.empty())
+            {
+                networkAdapter.defaultGateway =
+                    gatewayAddress;
+
+                break;
+            }
         }
 
 
         // ====================================================
-        // DNS Servers
+        // DNS servers
         // ====================================================
 
         for (
@@ -427,19 +411,21 @@ void NetworkMonitor::initializeAdapters()
         )
         {
             if (
-                dns->Address.lpSockaddr ==
-                nullptr
+                dns->Address.lpSockaddr == nullptr
             )
             {
                 continue;
             }
-
 
             std::string dnsAddress =
                 getIPAddress(
                     dns->Address.lpSockaddr
                 );
 
+            if (dnsAddress.empty())
+            {
+                continue;
+            }
 
             if (
                 !networkAdapter.dnsServers.empty()
@@ -448,7 +434,6 @@ void NetworkMonitor::initializeAdapters()
                 networkAdapter.dnsServers +=
                     ", ";
             }
-
 
             networkAdapter.dnsServers +=
                 dnsAddress;
@@ -464,13 +449,16 @@ void NetworkMonitor::initializeAdapters()
             networkAdapter.dhcp =
                 "Enabled";
 
-
-            networkAdapter.dhcpServer =
-                getIPAddress(
-                    reinterpret_cast<const SOCKADDR*>(
-                        &adapter->Dhcpv4Server
-                    )
-                );
+            if (
+                adapter->Dhcpv4Server.lpSockaddr !=
+                nullptr
+            )
+            {
+                networkAdapter.dhcpServer =
+                    getIPAddress(
+                        adapter->Dhcpv4Server.lpSockaddr
+                    );
+            }
         }
         else
         {
@@ -480,7 +468,7 @@ void NetworkMonitor::initializeAdapters()
 
 
         // ====================================================
-        // Determine whether adapter is Wi-Fi
+        // Determine Wi-Fi
         // ====================================================
 
         networkAdapter.isWifi =
@@ -500,13 +488,12 @@ void NetworkMonitor::initializeAdapters()
 
 
     // ========================================================
-    // Wi-Fi information
+    // WLAN information
     // ========================================================
 
     DWORD negotiatedVersion = 0;
 
     HANDLE wlanHandle = nullptr;
-
 
     DWORD wlanResult =
         WlanOpenHandle(
@@ -515,7 +502,6 @@ void NetworkMonitor::initializeAdapters()
             &negotiatedVersion,
             &wlanHandle
         );
-
 
     if (
         wlanResult != ERROR_SUCCESS ||
@@ -528,7 +514,6 @@ void NetworkMonitor::initializeAdapters()
 
     PWLAN_INTERFACE_INFO_LIST interfaceList =
         nullptr;
-
 
     wlanResult =
         WlanEnumInterfaces(
@@ -543,15 +528,9 @@ void NetworkMonitor::initializeAdapters()
         interfaceList != nullptr
     )
     {
-        // ----------------------------------------------------
-        // Iterate through Wi-Fi interfaces
-        // ----------------------------------------------------
-
         for (
             DWORD i = 0;
-
             i < interfaceList->dwNumberOfItems;
-
             ++i
         )
         {
@@ -563,8 +542,7 @@ void NetworkMonitor::initializeAdapters()
             // Convert GUID to string
             // ------------------------------------------------
 
-            wchar_t guidString[64];
-
+            wchar_t guidString[64]{};
 
             int guidLength =
                 StringFromGUID2(
@@ -573,12 +551,10 @@ void NetworkMonitor::initializeAdapters()
                     64
                 );
 
-
             if (guidLength <= 0)
             {
                 continue;
             }
-
 
             std::string interfaceGuid =
                 wideToString(
@@ -590,11 +566,11 @@ void NetworkMonitor::initializeAdapters()
             // Find corresponding adapter
             // ------------------------------------------------
 
-            for (auto& adapter : adapters)
+            for (auto& networkAdapter : adapters)
             {
                 if (
                     _stricmp(
-                        adapter.adapterName.c_str(),
+                        networkAdapter.adapterName.c_str(),
                         interfaceGuid.c_str()
                     ) != 0
                 )
@@ -602,8 +578,7 @@ void NetworkMonitor::initializeAdapters()
                     continue;
                 }
 
-
-                adapter.isWifi = true;
+                networkAdapter.isWifi = true;
 
 
                 // --------------------------------------------
@@ -622,12 +597,10 @@ void NetworkMonitor::initializeAdapters()
                 PWLAN_CONNECTION_ATTRIBUTES connectionInfo =
                     nullptr;
 
-
                 DWORD connectionInfoSize =
                     sizeof(
                         WLAN_CONNECTION_ATTRIBUTES
                     );
-
 
                 WLAN_OPCODE_VALUE_TYPE opcodeValueType;
 
@@ -664,10 +637,9 @@ void NetworkMonitor::initializeAdapters()
                         ->wlanAssociationAttributes
                         .dot11Ssid;
 
-
                 if (ssid.uSSIDLength > 0)
                 {
-                    adapter.wifiSSID =
+                    networkAdapter.wifiSSID =
                         std::string(
                             reinterpret_cast<char*>(
                                 ssid.ucSSID
@@ -686,9 +658,7 @@ void NetworkMonitor::initializeAdapters()
                         ->wlanAssociationAttributes
                         .dot11Bssid;
 
-
                 std::ostringstream bssidStream;
-
 
                 for (int j = 0; j < 6; ++j)
                 {
@@ -696,7 +666,6 @@ void NetworkMonitor::initializeAdapters()
                     {
                         bssidStream << ":";
                     }
-
 
                     bssidStream
                         << std::uppercase
@@ -708,16 +677,15 @@ void NetworkMonitor::initializeAdapters()
                         );
                 }
 
-
-                adapter.wifiBSSID =
+                networkAdapter.wifiBSSID =
                     bssidStream.str();
 
 
                 // ============================================
-                // Signal Strength
+                // Signal strength
                 // ============================================
 
-                adapter.wifiSignalStrength =
+                networkAdapter.wifiSignalStrength =
                     connectionInfo
                         ->wlanAssociationAttributes
                         .wlanSignalQuality;
@@ -726,6 +694,8 @@ void NetworkMonitor::initializeAdapters()
                 WlanFreeMemory(
                     connectionInfo
                 );
+
+                break;
             }
         }
     }
@@ -772,12 +742,10 @@ void NetworkMonitor::updateNetworkStats()
 
 
     // --------------------------------------------------------
-    // Ignore extremely small intervals
+    // Ignore very small intervals
     // --------------------------------------------------------
 
-    if (
-        elapsedSeconds < 0.25
-    )
+    if (elapsedSeconds < 0.25)
     {
         return;
     }
@@ -789,19 +757,14 @@ void NetworkMonitor::updateNetworkStats()
 
     for (auto& adapter : adapters)
     {
-        // ----------------------------------------------------
-        // MIB_IF_ROW2 contains 64-bit network counters
-        // ----------------------------------------------------
-
         MIB_IF_ROW2 row{};
-
 
         row.InterfaceIndex =
             adapter.interfaceIndex;
 
 
         // ----------------------------------------------------
-        // Get current interface statistics
+        // Get interface statistics
         // ----------------------------------------------------
 
         if (
@@ -814,7 +777,6 @@ void NetworkMonitor::updateNetworkStats()
 
         uint64_t currentReceived =
             row.InOctets;
-
 
         uint64_t currentSent =
             row.OutOctets;
@@ -829,26 +791,21 @@ void NetworkMonitor::updateNetworkStats()
             adapter.bytesReceived =
                 currentReceived;
 
-
             adapter.bytesSent =
                 currentSent;
 
-
             adapter.downloadSpeed = 0;
-
             adapter.uploadSpeed = 0;
-
 
             continue;
         }
 
 
         // ====================================================
-        // Calculate received bytes
+        // Calculate received difference
         // ====================================================
 
         uint64_t receivedDifference = 0;
-
 
         if (
             currentReceived >=
@@ -862,11 +819,10 @@ void NetworkMonitor::updateNetworkStats()
 
 
         // ====================================================
-        // Calculate sent bytes
+        // Calculate sent difference
         // ====================================================
 
         uint64_t sentDifference = 0;
-
 
         if (
             currentSent >=
@@ -889,7 +845,6 @@ void NetworkMonitor::updateNetworkStats()
                 elapsedSeconds
             );
 
-
         adapter.uploadSpeed =
             static_cast<uint64_t>(
                 sentDifference /
@@ -904,18 +859,16 @@ void NetworkMonitor::updateNetworkStats()
         adapter.bytesReceived =
             currentReceived;
 
-
         adapter.bytesSent =
             currentSent;
     }
 
 
     // --------------------------------------------------------
-    // First sample completed
+    // Mark first sample complete
     // --------------------------------------------------------
 
     firstStatsSample = false;
-
 
     lastStatsUpdate =
         currentTime;
@@ -935,26 +888,20 @@ std::string NetworkMonitor::getInterfaceTypeName(
         case IF_TYPE_ETHERNET_CSMACD:
             return "Ethernet";
 
-
         case IF_TYPE_IEEE80211:
             return "Wi-Fi";
-
 
         case IF_TYPE_SOFTWARE_LOOPBACK:
             return "Loopback";
 
-
         case IF_TYPE_TUNNEL:
             return "Tunnel / VPN";
-
 
         case IF_TYPE_PPP:
             return "PPP";
 
-
         case IF_TYPE_IEEE1394:
             return "FireWire";
-
 
         default:
             return "Other";
@@ -975,26 +922,20 @@ std::string NetworkMonitor::getAdapterStatusName(
         case IfOperStatusUp:
             return "Connected";
 
-
         case IfOperStatusDown:
             return "Disconnected";
-
 
         case IfOperStatusTesting:
             return "Testing";
 
-
         case IfOperStatusDormant:
             return "Dormant";
-
 
         case IfOperStatusNotPresent:
             return "Not Present";
 
-
         case IfOperStatusLowerLayerDown:
             return "Lower Layer Down";
-
 
         default:
             return "Unknown";
@@ -1035,7 +976,6 @@ std::string NetworkMonitor::getIPAddress(
                 const SOCKADDR_IN*
             >(address);
 
-
         if (
             inet_ntop(
                 AF_INET,
@@ -1047,7 +987,6 @@ std::string NetworkMonitor::getIPAddress(
         {
             return "";
         }
-
 
         return buffer;
     }
@@ -1067,7 +1006,6 @@ std::string NetworkMonitor::getIPAddress(
                 const SOCKADDR_IN6*
             >(address);
 
-
         if (
             inet_ntop(
                 AF_INET6,
@@ -1079,7 +1017,6 @@ std::string NetworkMonitor::getIPAddress(
         {
             return "";
         }
-
 
         return buffer;
     }
@@ -1118,16 +1055,14 @@ NetworkMonitor::getAdapters()
 
 
 // ============================================================
-// Get Total Download Speed
+// Get total download speed
 // ============================================================
 
 uint64_t NetworkMonitor::getDownloadSpeed()
 {
     updateNetworkStats();
 
-
     uint64_t total = 0;
-
 
     for (
         const auto& adapter :
@@ -1138,22 +1073,19 @@ uint64_t NetworkMonitor::getDownloadSpeed()
             adapter.downloadSpeed;
     }
 
-
     return total;
 }
 
 
 // ============================================================
-// Get Total Upload Speed
+// Get total upload speed
 // ============================================================
 
 uint64_t NetworkMonitor::getUploadSpeed()
 {
     updateNetworkStats();
 
-
     uint64_t total = 0;
-
 
     for (
         const auto& adapter :
@@ -1163,7 +1095,6 @@ uint64_t NetworkMonitor::getUploadSpeed()
         total +=
             adapter.uploadSpeed;
     }
-
 
     return total;
 }

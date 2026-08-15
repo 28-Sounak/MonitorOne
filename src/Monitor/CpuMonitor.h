@@ -3,11 +3,18 @@
 #include<cstdint>
 #include<string>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 class CpuMonitor
 {
     //CPU usage values
     private:
 
+    #ifdef _WIN32
+
+    //CPU Usage Calculation
     unsigned long long previousIdleTime = 0;
     unsigned long long previousKernelTime = 0;
     unsigned long long previousUserTime = 0;
@@ -23,20 +30,37 @@ class CpuMonitor
     float baseClock = 0.0f;
     float currentClock = 0.0f;
 
+    //CPU Information Initialization
     void initializeCpuInfo();
+
+    //Individual CPU Information Functions
+    std::string readCpuName();
+    std::string readVendorName();
+
+    uint32_t readNumberOfCores();
+    uint32_t readNumberOfLogicalProcessors();
+
+    float readBaseClock();
+    float readCurrentClock();
+
+    #endif
 
     //Returns CPU usage percentage 
     public:
+
+    //Constructor
     CpuMonitor();
 
+    //CPU Usage
     float getCpuUsage();
 
-    std::string getCpuName();
-    std::string getVendorName();
+    //CPU Information
+    std::string getCpuName() const;
+    std::string getVendorName() const;
 
-    uint32_t getNumberOfCores();
-    uint32_t getNumberOfLogicalProcessors();
+    uint32_t getNumberOfCores() const;
+    uint32_t getNumberOfLogicalProcessors() const;
 
-    float getBaseClock();
-    float getCurrentClock();
+    float getBaseClock() const;
+    float getCurrentClock() const;
 };

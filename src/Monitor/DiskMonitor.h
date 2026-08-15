@@ -4,119 +4,142 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <pdh.h>
+#endif
+
 
 // ============================================================
-// Memory Module
+// Disk Information
 // ============================================================
 
-struct MemoryModule
+struct DiskInfo
 {
     // --------------------------------------------------------
-    // Identification
+    // Basic information
     // --------------------------------------------------------
 
-    std::string manufacturer;
-    std::string partNumber;
-    std::string serialNumber;
+    std::string driveLetter;
+    std::string volumeName;
+    std::string fileSystem;
+
 
     // --------------------------------------------------------
-    // Memory characteristics
+    // Storage information
     // --------------------------------------------------------
 
-    std::string memoryType;
-    std::string formFactor;
-    std::string deviceLocator;
+    uint64_t totalSpace = 0;
+    uint64_t freeSpace = 0;
+    uint64_t usedSpace = 0;
 
-    // Capacity in bytes
-    uint64_t capacity = 0;
+    float usagePercentage = 0.0f;
 
-    // Speed in MHz
-    uint32_t speed = 0;
-    uint32_t configuredSpeed = 0;
 
-    // Width in bits
-    uint32_t dataWidth = 0;
-    uint32_t totalWidth = 0;
+    // --------------------------------------------------------
+    // Runtime disk activity
+    // --------------------------------------------------------
+
+    uint64_t readSpeed = 0;
+    uint64_t writeSpeed = 0;
+
+    uint64_t bytesRead = 0;
+    uint64_t bytesWritten = 0;
 };
 
 
 // ============================================================
-// Memory Monitor
+// Disk Monitor
 // ============================================================
 
-class MemoryMonitor
+class DiskMonitor
 {
 private:
 
     // --------------------------------------------------------
-    // Runtime memory information
+    // Disk information
     // --------------------------------------------------------
 
-    uint64_t totalMemory = 0;
-    uint64_t availableMemory = 0;
-    uint64_t usedMemory = 0;
+    std::vector<DiskInfo> disks;
 
 
     // --------------------------------------------------------
-    // Physical RAM module information
+    // Initialization
     // --------------------------------------------------------
 
-    std::vector<MemoryModule> memoryModules;
-
-
-    // --------------------------------------------------------
-    // Runtime memory
-    // --------------------------------------------------------
-
-    void updateMemoryInfo();
+    void initializeDisks();
 
 
     // --------------------------------------------------------
-    // Physical RAM modules
+    // Runtime statistics
     // --------------------------------------------------------
 
-    void initializeMemoryModules();
+    void updateDiskStats();
 
 
     // --------------------------------------------------------
     // Helper functions
     // --------------------------------------------------------
 
-    std::string getMemoryTypeName(
-        uint64_t type
+    static std::string wideToString(
+        const wchar_t* value
     );
 
-    std::string getFormFactorName(
-        uint16_t formFactor
-    );
+
+    // --------------------------------------------------------
+    // PDH
+    // --------------------------------------------------------
+
+#ifdef _WIN32
+
+    PDH_HQUERY pdhQuery = nullptr;
+
+    struct DiskCounter
+    {
+        std::string driveLetter;
+
+        PDH_HCOUNTER readCounter = nullptr;
+        PDH_HCOUNTER writeCounter = nullptr;
+    };
+
+    std::vector<DiskCounter> diskCounters;
+
+    bool pdhInitialized = false;
+
+#endif
 
 
 public:
 
     // --------------------------------------------------------
-    // Constructor
+    // Constructor / Destructor
     // --------------------------------------------------------
 
-    MemoryMonitor();
+    DiskMonitor();
+
+    ~DiskMonitor();
 
 
     // --------------------------------------------------------
-    // Runtime memory
+    // Update
     // --------------------------------------------------------
 
     void update();
 
-    uint64_t getTotalMemory();
-    uint64_t getAvailableMemory();
-    uint64_t getUsedMemory();
 
-    float getMemoryUsage();
+    // --------------------------------------------------------
+    // Disk information
+    // --------------------------------------------------------
+
+    const std::vector<DiskInfo>&
+    getDisks();
 
 
     // --------------------------------------------------------
-    // RAM module information
+    // Total disk read/write speed
     // --------------------------------------------------------
 
-    const std::vector<MemoryModule>&
-    getMemoryModules();
+    uint64_t getTotalReadSpeed();
+
+    uint64_t getTotalWriteSpeed();
 };

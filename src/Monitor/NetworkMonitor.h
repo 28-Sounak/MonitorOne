@@ -70,7 +70,7 @@ struct NetworkAdapter
 
     uint32_t interfaceIndex = 0;
 
-    // Link speed is reported by Windows in bits per second
+    // Bits per second
     uint64_t linkSpeed = 0;
 
     uint32_t mtu = 0;
@@ -88,7 +88,7 @@ struct NetworkAdapter
 
 
     // --------------------------------------------------------
-    // Wi-Fi Specific Information
+    // Wi-Fi Information
     // --------------------------------------------------------
 
     bool isWifi = false;
@@ -96,7 +96,7 @@ struct NetworkAdapter
     std::string wifiSSID;
     std::string wifiBSSID;
 
-    // Wi-Fi signal quality: 0 - 100
+    // 0 - 100
     int wifiSignalStrength = 0;
 };
 
@@ -133,7 +133,7 @@ private:
 
 
     // --------------------------------------------------------
-    // Network statistics
+    // Runtime statistics
     // --------------------------------------------------------
 
     void updateNetworkStats();

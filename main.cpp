@@ -170,7 +170,7 @@ int main()
     // CONTINUOUS MONITORING
     // =========================================================
 
-    std::cout << "\n================ REAL-TIME MONITORING =================\n";
+    /*std::cout << "\n================ REAL-TIME MONITORING =================\n";
 
     while (true)
     {
@@ -238,7 +238,77 @@ int main()
         std::this_thread::sleep_for(
             std::chrono::seconds(1)
         );
-    }
+    }*/
+
+    // =========================================================
+// CONTINUOUS MONITORING
+// =========================================================
+
+std::cout << "\n================ REAL-TIME MONITORING =================\n";
+
+while (true)
+{
+    std::cout << "Getting CPU...\n";
+
+    float cpuUsage = cpu.getCpuUsage();
+
+    std::cout << "Getting GPU...\n";
+
+    float gpuUsage = gpu.getGpuUsage();
+
+    std::cout << "Getting GPU memory...\n";
+
+    uint64_t gpuMemoryUsed =
+        gpu.getDedicatedMemoryUsed();
+
+    std::cout << "Getting memory...\n";
+
+    float memoryUsage =
+        memory.getMemoryUsage();
+
+    std::cout << "Getting download speed...\n";
+
+    uint64_t downloadSpeed =
+        network.getDownloadSpeed();
+
+    std::cout << "Getting upload speed...\n";
+
+    uint64_t uploadSpeed =
+        network.getUploadSpeed();
+
+    std::cout << "\n------------------------------------------\n";
+
+    std::cout << std::fixed
+              << std::setprecision(2);
+
+    std::cout << "CPU Usage: "
+              << cpuUsage
+              << "%\n";
+
+    std::cout << "GPU Usage: "
+              << gpuUsage
+              << "%\n";
+
+    std::cout << "GPU Dedicated Memory Used: "
+              << gpuMemoryUsed / (1024 * 1024)
+              << " MB\n";
+
+    std::cout << "Memory Usage: "
+              << memoryUsage
+              << "%\n";
+
+    std::cout << "Download Speed: "
+              << downloadSpeed
+              << " B/s\n";
+
+    std::cout << "Upload Speed: "
+              << uploadSpeed
+              << " B/s\n";
+
+    std::this_thread::sleep_for(
+        std::chrono::seconds(1)
+    );
+}
 
     return 0;
 }
