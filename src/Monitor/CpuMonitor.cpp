@@ -1,4 +1,21 @@
-#include "CpuMonitor.h"
+#include "../Core/CpuMonitor.h"
+#include "../Platform/Windows/WindowsCpu.h"
+
+CpuMonitor :: CpuMonitor()
+{
+
+}
+
+float CpuMonitor :: getUsage()
+{
+    static WindowsCpu windowsCpu;
+
+    return windowsCpu.getUsage();
+}
+
+
+
+/*#include "CpuMonitor.h"
 
 #include <windows.h>
 #include <winreg.h>
@@ -283,7 +300,7 @@ float CpuMonitor::getCpuUsage()
     // ========================================================
     // Get current CPU times
     // ========================================================
-
+\
     if (!GetSystemTimes(
             &idleTime,
             &kernelTime,
@@ -371,4 +388,4 @@ float CpuMonitor::getCpuUsage()
 
 
     return cpuUsage;
-}
+}*/

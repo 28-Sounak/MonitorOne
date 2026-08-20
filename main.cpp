@@ -1,4 +1,29 @@
 #include <iostream>
+
+#include <thread>
+
+#include <chrono>
+
+#include "src/Core/CpuMonitor.h"
+
+int main()
+{
+    CpuMonitor cpuMonitor;
+
+    while(true)
+    {
+        float CpuUsage = cpuMonitor.getUsage();
+
+        std :: cout << "CPU Ysage: " << cpuUsage << "%\n";
+
+        std :: this_thread :: sleep_for(std :: chrono :: seconds(1));
+    }
+    
+    return 0;
+}
+
+
+/*#include <iostream>
 #include <thread>
 #include <chrono>
 #include <iomanip>
@@ -311,4 +336,4 @@ while (true)
 }
 
     return 0;
-}
+}*/

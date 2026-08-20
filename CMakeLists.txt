@@ -25,7 +25,10 @@ file(GLOB MONITOR_SOURCES
 
 add_executable(MonitorOne
     main.cpp
-    ${MONITOR_SOURCES}
+
+    src/Monitor/CpuMonitor.cpp
+
+    src/Platform/Windows/WindowsCpu.cpp
 )
 
 
@@ -35,7 +38,14 @@ add_executable(MonitorOne
 
 target_include_directories(MonitorOne PRIVATE
     src
+
+    src/ Core
+
     src/Monitor
+
+    src/Platform
+
+    src/Platform/Windows
 )
 
 
