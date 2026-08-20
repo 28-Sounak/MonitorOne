@@ -23,4 +23,4 @@ class CpuMonitor
         unsigned long long perviousKernelTime;
 
         unsigned long long previousUserTime;*/
-}
+};

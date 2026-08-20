@@ -4,11 +4,30 @@
 
 #include <chrono>
 
+#include <iomanip>
+
 #include "src/Core/CpuMonitor.h"
+
+#include "src/Core/MemoryMonitor.h"
+
+
+//Helper: Convert Bytes to GB
+
+double bytesToGB(uint64_t bytes)
+{
+    return static_cast<double>(bytes) /
+           (1024.0 * 1024.0 * 1024.0);
+}
+
+//MAIN
 
 int main()
 {
     CpuMonitor cpuMonitor;
+
+    MemoryMonitor memoryMonitor;
+
+    //CPU  Information
 
     std :: cout << "CPU Information:\n";
     std::cout << "============================\n";
@@ -23,16 +42,122 @@ int main()
 
     std::cout << "Logical Processors: " << cpu.getLogicalProcessorCount() << '\n';
 
-    std::cout << "\nCPU Usage\n";
+    //Memory Module Information
+
+    std :: cout << "Memory Modules \n";
+
+    std::vector<MemoryModule> modules =
+        memory.getModules();
+
+
+    if (modules.empty())
+    {
+        std::cout << "No memory module information available.\n";
+    }
+    else
+    {
+        for (size_t i = 0; i < modules.size(); ++i)
+        {
+            const MemoryModule& module =
+                modules[i];
+
+            std::cout << "Module " << i + 1 << '\n';
+            std::cout << "----------------------------------------\n";
+
+            std::cout << "Size: "
+                      << std::fixed
+                      << std::setprecision(2)
+                      << bytesToGB(module.size)
+                      << " GB\n";
+
+            std::cout << "Manufacturer: "
+                      << module.manufacturer
+                      << '\n';
+
+            std::cout << "Type: "
+                      << module.type
+                      << '\n';
+
+            std::cout << "Form Factor: "
+                      << module.formFactor
+                      << '\n';
+
+            std::cout << "Speed: "
+                      << module.speed
+                      << " MT/s\n";
+
+            std::cout << "Configured Speed: ";
+
+            if (!module.configuredClockSpeed.empty())
+            {
+                std::cout
+                    << module.configuredClockSpeed
+                    << " MT/s\n";
+            }
+            else
+            {
+                std::cout
+                    << "Unknown\n";
+            }
+
+            std::cout << "Part Number: "
+                      << module.partNumber
+                      << '\n';
+
+            std::cout << "Serial Number: "
+                      << module.serialNumber
+                      << "\n\n";
+        }
+    }
+
+    //Live System
+
+    std::cout << "Live System Monitor\n";
     std::cout << "============================\n";
 
     while(true)
     {
-        float CpuUsage = cpuMonitor.getUsage();
+        float cpuUsage = cpu.getUsage();
 
-        std :: cout << "CPU Ysage: " << cpuUsage << "%\n";
+        uint64_t totalMemory = memory.getTotalMemory();
 
-        std :: this_thread :: sleep_for(std :: chrono :: seconds(1));
+        uint64_t availableMemory = memory.getAvailableMemory();
+
+        uint64_t usedMemory = memory.getUsedMemory();
+
+        float memoryUsage = memory.getUsage();
+
+        //Clear the previous console output
+
+        std::cout << "\033[2J\033[H";
+
+        //CPU
+
+        std :: cout << "CPU \n";
+
+        std :: cout << "CPU Usage: " << std :: fixed << std :: setprecision(2) << cpuUsage << "%\n";
+
+        //Memory
+
+        std :: cout "MEMORY \n";
+
+        std::cout << "Total: " << std::fixed << std::setprecision(2) << bytesToGB(totalMemory) << " GB\n";
+
+        std::cout << "Used: "
+                  << bytesToGB(usedMemory)
+                  << " GB\n";
+
+        std::cout << "Available: "
+                  << bytesToGB(availableMemory)
+                  << " GB\n";
+
+        std::cout << "Usage: "
+                  << memoryUsage
+                  << "%\n";
+
+        //Refresh Rate
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     
     return 0;

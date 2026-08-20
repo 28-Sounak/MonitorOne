@@ -1,4 +1,44 @@
-#include "MemoryMonitor.h"
+#include "../Core/MemoryMonitor.h"
+
+#include "../Platform/Windows/WindowsMemory.h"
+
+namespace
+{
+    WindowsMemory windowsMemory;
+}
+
+MemoryMonitor :: MemoryMonitor()
+{
+
+}
+
+uint64_t MemoryMonitor :: getTotalMemory()
+{
+    return MemoryMonitor.getTotalMemory();
+}
+
+uint64_t MemoryMonitor::getAvailableMemory()
+{
+    return windowsMemory.getAvailableMemory();
+}
+
+uint64_t MemoryMonitor::getUsedMemory()
+{
+    return windowsMemory.getUsedMemory();
+}
+
+float MemoryMonitor::getUsage()
+{
+    return windowsMemory.getUsage();
+}
+
+std::vector<MemoryModule> MemoryMonitor::getModules()
+{
+    return windowsMemory.getModules();
+}
+
+
+/*#include "MemoryMonitor.h"
 
 #include <windows.h>
 
@@ -370,4 +410,4 @@ const std::vector<MemoryModule>&
 MemoryMonitor::getMemoryModules()
 {
     return memoryModules;
-}
+}*/

@@ -71,4 +71,6 @@ target_link_libraries(MonitorOne PRIVATE
     ole32
 
     pdh
+
+    wbemuuid
 )
