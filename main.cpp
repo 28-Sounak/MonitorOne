@@ -285,7 +285,7 @@ int main()
 // CONTINUOUS MONITORING
 // =========================================================
 
-std::cout << "\n================ REAL-TIME MONITORING =================\n";
+/*std::cout << "\n================ REAL-TIME MONITORING =================\n";
 
 while (true)
 {
