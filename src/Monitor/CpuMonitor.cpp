@@ -1,9 +1,39 @@
 #include "../Core/CpuMonitor.h"
 #include "../Platform/Windows/WindowsCpu.h"
 
+namespace
+{
+    WindowsCpu windowsCpu;
+}
+
 CpuMonitor :: CpuMonitor()
 {
 
+}
+
+std::string CpuMonitor::getName()
+{
+    return windowsCpu.getName();
+}
+
+std::string CpuMonitor::getVendor()
+{
+    return windowsCpu.getVendor();
+}
+
+std::string CpuMonitor::getArchitecture()
+{
+    return windowsCpu.getArchitecture();
+}
+
+unsigned int CpuMonitor::getPhysicalCoreCount()
+{
+    return windowsCpu.getPhysicalCoreCount();
+}
+
+unsigned int CpuMonitor::getLogicalProcessorCount()
+{
+    return windowsCpu.getLogicalProcessorCount();
 }
 
 float CpuMonitor :: getUsage()

@@ -1,8 +1,132 @@
 #include "WindowsCpu.h"
 
+#include <intrin.h>
+
+#include <cstring.h>
+
+#include <vector>
+
 WindowsCpu :: WindowsCpu() : previousIdleTime(0), previousKernelTime(0), previousUserTime(0)
 {
 
+}
+
+std :: string WindowsCpu :: getVedorName()
+{
+    int cpuInfo[4];
+
+    __cpuid(cpuInfo, 0);
+
+    char vendor[14];
+
+    std :: memcpy(vector + 0, &cpuInfo[1], sizeof(int));
+
+    std :: memcpy(vector + 4, &cpuInfo[3], sizeof(int));
+
+    std :: memcpy(vector + 4, &cpuInfo[2], sizeof(int));
+
+    vendor[12] = '\0';
+
+    return std :: string(vendor);
+}
+
+std :: string WindowsCpu :: getName()
+{
+    int cpuInfo[4];
+
+    char cpuName[49];
+
+    std :: memset(cpuName, 0, sizeOf(cpuName));
+
+    __cpuid(cpuInfo, 0x80000000);
+
+    unsigned int maxExtendedLead = static_cast<unsigned int>(cpuInfo[0]);
+
+    if (maxExtendedLeaf < 0x80000004)
+    {
+        return "Unknown CPU";
+    }
+
+    for(unsigned int = 0; i < 3; ++i)
+    {
+        __cpuid(cpuInfo, 0x80000002 + i);
+
+        std :: memcpy(cpuName + i * 16, cpuInfo, sizeOf(cpuInfo));
+    }
+
+    cpuName[48] = '\0';
+
+    return std :: string(cpuName);
+}
+
+std :: string WIndowsCpu :: getArchitecture()
+{
+    SYSTEM_INFO systemInfo;
+
+    GetNativeSystemInfo(&systemInfo);
+
+    switch(systemInfo.wProcessorArchitecture);
+    {
+        case PROCESSOR_ARCHITECTURE_AMD64:
+            return "x64";
+
+        case PROCESSOR_ARCHITECTURE_ARM64:
+            return "ARM64";
+
+        case PROCESSOR_ARCHITECTURE_INTEL:
+            return "x86";
+
+        default:
+            return "Unknown";
+    }
+}
+
+unsigned int WindowsCpu :: getLogicalProcessorCount()
+{
+    SYSTEM_INFO systemInfo;
+
+    GetNativeSystemInfo(&systemInfo);
+
+    return systemInfo.dwNumberOfProcessors;
+}
+
+unsigned int WindowsCpu :: getPhysicalCoreCount()
+{
+    DWORD bufferSize = 0;
+
+    GetLogicalProcessorsInformationEx(RelationPRocessorCore, nullptr, &bufferSize);
+
+    if(bufferSize == 0)
+    {
+        return 0;
+    }
+
+    std :: vector<BYTE> buffer(bufferSize);
+
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX info = reinterpret_cast<PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(buffer.data());
+
+    if(!GetLogicalProcessorInformationEx(ReationProcessorCore, info, &bufferSize))
+    {
+        return 0;
+    }
+
+    unsigned int coreCount = 0;
+
+    DWORD offset = 0;
+
+    while(offset < buffersize)
+    {
+        auto current = reinterpret_cast<PSYSTEM_LOGICAL_INFORMATION_EX>(buffer.data() + offset);
+
+        if(current -> Relationship == RelationProcessorCore)
+        {
+            ++coreCount;
+        }
+
+        offset += current->Size;
+    }
+
+    return coreCount;
 }
 
 ULONGLONG WindowsCpu :: fileTimeToULL(const FILETIME& fileTime)
@@ -55,7 +179,7 @@ float WindowsCpu :: getCpuUsage()
     ULONGLONG userDiff = user - previousUserTime;
     
     //Update previous values 
-    
+
     previousIdleTime = idle
 
     previousKernelTime = kernel;;

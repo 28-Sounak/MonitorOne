@@ -10,6 +10,22 @@ int main()
 {
     CpuMonitor cpuMonitor;
 
+    std :: cout << "CPU Information:\n";
+    std::cout << "============================\n";
+
+    std::cout << "Name: " << cpu.getName() << '\n';
+
+    std::cout << "Vendor: " << cpu.getVendor() << '\n';
+
+    std::cout << "Architecture: " << cpu.getArchitecture() << '\n';
+
+    std::cout << "Physical Cores: " << cpu.getPhysicalCoreCount() << '\n';
+
+    std::cout << "Logical Processors: " << cpu.getLogicalProcessorCount() << '\n';
+
+    std::cout << "\nCPU Usage\n";
+    std::cout << "============================\n";
+
     while(true)
     {
         float CpuUsage = cpuMonitor.getUsage();
