@@ -1,4 +1,132 @@
-#include "GpuMonitor.h"
+#include "../Core/GpuMonitor.h"
+
+#include "../Platform/Windows/WindowsGpu.h"
+
+namespace
+{
+    WindowsGpu windowsGpu;
+}
+
+//Constructor
+
+GpuMonitor :: GpuMonitor()
+{
+
+}
+
+//Identification
+
+std::string GpuMonitor::getGpuName()
+{
+    return windowsGpu.getGpuName();
+}
+
+
+std::string GpuMonitor::getVendorName()
+{
+    return windowsGpu.getVendorName();
+}
+
+
+uint32_t GpuMonitor::getVendorId()
+{
+    return windowsGpu.getVendorId();
+}
+
+
+uint32_t GpuMonitor::getDeviceId()
+{
+    return windowsGpu.getDeviceId();
+}
+
+//Dedicated Memory
+
+uint64_t
+GpuMonitor::getDedicatedMemoryTotal()
+{
+    return windowsGpu.getDedicatedMemoryTotal();
+}
+
+
+uint64_t
+GpuMonitor::getDedicatedMemoryUsed()
+{
+    return windowsGpu.getDedicatedMemoryUsed();
+}
+
+
+uint64_t
+GpuMonitor::getDedicatedMemoryAvailable()
+{
+    return windowsGpu.getDedicatedMemoryAvailable();
+}
+
+
+float
+GpuMonitor::getDedicatedMemoryUsage()
+{
+    return windowsGpu.getDedicatedMemoryUsage();
+}
+
+//Shared Memory
+
+uint64_t
+GpuMonitor::getSharedMemoryTotal()
+{
+    return windowsGpu.getSharedMemoryTotal();
+}
+
+
+uint64_t
+GpuMonitor::getSharedMemoryUsed()
+{
+    return windowsGpu.getSharedMemoryUsed();
+}
+
+
+uint64_t
+GpuMonitor::getSharedMemoryAvailable()
+{
+    return windowsGpu.getSharedMemoryAvailable();
+}
+
+// GPU telemetry
+
+float
+GpuMonitor::getGpuUsage()
+{
+    return windowsGpu.getGpuUsage();
+}
+
+
+float
+GpuMonitor::getTemperature()
+{
+    return windowsGpu.getTemperature();
+}
+
+
+uint32_t
+GpuMonitor::getFanSpeed()
+{
+    return windowsGpu.getFanSpeed();
+}
+
+
+uint32_t
+GpuMonitor::getCoreClock()
+{
+    return windowsGpu.getCoreClock();
+}
+
+
+uint32_t
+GpuMonitor::getMemoryClock()
+{
+    return windowsGpu.getMemoryClock();
+}
+
+/*#include "GpuMonitor.h"
 
 #include <windows.h>
 
@@ -798,4 +926,4 @@ uint64_t GpuMonitor::getSharedMemoryUsed()
     }
 
     return memoryInfo.CurrentUsage;
-}
+} */

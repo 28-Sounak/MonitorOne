@@ -6,6 +6,8 @@
 
 #include <iomanip>
 
+#include <cstdint>
+
 #include "src/Core/CpuMonitor.h"
 
 #include "src/Core/MemoryMonitor.h"
@@ -26,6 +28,8 @@ int main()
     CpuMonitor cpuMonitor;
 
     MemoryMonitor memoryMonitor;
+
+    GpuMonitor gpu;
 
     //CPU  Information
 
@@ -110,54 +114,294 @@ int main()
         }
     }
 
+    // GPU INFORMATION
+
+
+    std::cout << "             GPU INFORMATION\n"
+        << "========================================\n\n";
+
+    std::cout
+        << "GPU: "
+        << gpu.getGpuName()
+        << '\n';
+
+
+    std::cout
+        << "Vendor: "
+        << gpu.getVendorName()
+        << '\n';
+
+
+    std::cout
+        << "Vendor ID: 0x"
+        << std::hex
+        << gpu.getVendorId()
+        << std::dec
+        << '\n';
+
+
+    std::cout
+        << "Device ID: 0x"
+        << std::hex
+        << gpu.getDeviceId()
+        << std::dec
+        << '\n';
+
+
+    // --------------------------------------------------------
+    // VRAM
+    // --------------------------------------------------------
+
+    std::cout
+        << "\nDedicated VRAM: "
+        << bytesToGB(
+               gpu.getDedicatedMemoryTotal()
+           )
+        << " GB\n";
+
+
+    std::cout
+        << "Shared GPU Memory: "
+        << bytesToGB(
+               gpu.getSharedMemoryTotal()
+           )
+        << " GB\n";
+
+
+    // --------------------------------------------------------
+    // Telemetry
+    // --------------------------------------------------------
+
+    std::cout
+        << "\nGPU Usage: "
+        << gpu.getGpuUsage()
+        << "%\n";
+
+
+    std::cout
+        << "Temperature: "
+        << gpu.getTemperature()
+        << " °C\n";
+
+
+    std::cout
+        << "Fan Speed: "
+        << gpu.getFanSpeed()
+        << " RPM\n";
+
+
+    std::cout
+        << "Core Clock: "
+        << gpu.getCoreClock()
+        << " MHz\n";
+
+
+    std::cout
+        << "Memory Clock: "
+        << gpu.getMemoryClock()
+        << " MHz\n";
+
+
     //Live System
 
     std::cout << "Live System Monitor\n";
     std::cout << "============================\n";
 
-    while(true)
+    while (true)
     {
-        float cpuUsage = cpu.getUsage();
+        float cpuUsage =
+            cpu.getUsage();
 
-        uint64_t totalMemory = memory.getTotalMemory();
 
-        uint64_t availableMemory = memory.getAvailableMemory();
+        uint64_t totalMemory =
+            memory.getTotalMemory();
 
-        uint64_t usedMemory = memory.getUsedMemory();
 
-        float memoryUsage = memory.getUsage();
+        uint64_t usedMemory =
+            memory.getUsedMemory();
 
-        //Clear the previous console output
 
-        std::cout << "\033[2J\033[H";
+        uint64_t availableMemory =
+            memory.getAvailableMemory();
 
-        //CPU
 
-        std :: cout << "CPU \n";
+        float memoryUsage =
+            memory.getUsage();
 
-        std :: cout << "CPU Usage: " << std :: fixed << std :: setprecision(2) << cpuUsage << "%\n";
 
-        //Memory
+        uint64_t gpuMemoryTotal =
+            gpu.getDedicatedMemoryTotal();
 
-        std :: cout "MEMORY \n";
 
-        std::cout << "Total: " << std::fixed << std::setprecision(2) << bytesToGB(totalMemory) << " GB\n";
+        uint64_t gpuMemoryUsed =
+            gpu.getDedicatedMemoryUsed();
 
-        std::cout << "Used: "
-                  << bytesToGB(usedMemory)
-                  << " GB\n";
 
-        std::cout << "Available: "
-                  << bytesToGB(availableMemory)
-                  << " GB\n";
+        uint64_t gpuMemoryAvailable =
+            gpu.getDedicatedMemoryAvailable();
 
-        std::cout << "Usage: "
-                  << memoryUsage
-                  << "%\n";
 
-        //Refresh Rate
+        float gpuMemoryUsage =
+            gpu.getDedicatedMemoryUsage();
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        float gpuUsage =
+            gpu.getGpuUsage();
+
+
+        float temperature =
+            gpu.getTemperature();
+
+
+        uint32_t fanSpeed =
+            gpu.getFanSpeed();
+
+
+        uint32_t coreClock =
+            gpu.getCoreClock();
+
+
+        uint32_t memoryClock =
+            gpu.getMemoryClock();
+
+
+        // ----------------------------------------------------
+        // Clear console
+        // ----------------------------------------------------
+
+        std::cout
+            << "\033[2J\033[H";
+
+
+        // ====================================================
+        // CPU
+        // ====================================================
+
+        std::cout
+            << "========================================\n"
+            << "                CPU\n"
+            << "========================================\n";
+
+
+        std::cout
+            << "Usage: "
+            << std::fixed
+            << std::setprecision(2)
+            << cpuUsage
+            << "%\n";
+
+
+        // ====================================================
+        // MEMORY
+        // ====================================================
+
+        std::cout
+            << "\n========================================\n"
+            << "               MEMORY\n"
+            << "========================================\n";
+
+
+        std::cout
+            << "Total: "
+            << bytesToGB(totalMemory)
+            << " GB\n";
+
+
+        std::cout
+            << "Used: "
+            << bytesToGB(usedMemory)
+            << " GB\n";
+
+
+        std::cout
+            << "Available: "
+            << bytesToGB(availableMemory)
+            << " GB\n";
+
+
+        std::cout
+            << "Usage: "
+            << memoryUsage
+            << "%\n";
+
+
+        // ====================================================
+        // GPU
+        // ====================================================
+
+        std::cout
+            << "\n========================================\n"
+            << "                 GPU\n"
+            << "========================================\n";
+
+
+        std::cout
+            << "GPU: "
+            << gpu.getGpuName()
+            << '\n';
+
+
+        std::cout
+            << "GPU Usage: "
+            << gpuUsage
+            << "%\n";
+
+
+        std::cout
+            << "VRAM Total: "
+            << bytesToGB(gpuMemoryTotal)
+            << " GB\n";
+
+
+        std::cout
+            << "VRAM Used: "
+            << bytesToGB(gpuMemoryUsed)
+            << " GB\n";
+
+
+        std::cout
+            << "VRAM Available: "
+            << bytesToGB(gpuMemoryAvailable)
+            << " GB\n";
+
+
+        std::cout
+            << "VRAM Usage: "
+            << gpuMemoryUsage
+            << "%\n";
+
+
+        std::cout
+            << "Temperature: "
+            << temperature
+            << " °C\n";
+
+
+        std::cout
+            << "Fan Speed: "
+            << fanSpeed
+            << " RPM\n";
+
+
+        std::cout
+            << "Core Clock: "
+            << coreClock
+            << " MHz\n";
+
+
+        std::cout
+            << "Memory Clock: "
+            << memoryClock
+            << " MHz\n";
+
+
+        // ----------------------------------------------------
+        // Refresh
+        // ----------------------------------------------------
+
+        std::this_thread::sleep_for(
+            std::chrono::seconds(1)
+        );
     }
     
     return 0;
